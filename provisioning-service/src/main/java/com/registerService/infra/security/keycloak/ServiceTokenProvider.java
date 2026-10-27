@@ -11,11 +11,6 @@ import org.springframework.web.client.RestClient;
 import java.time.Instant;
 import java.util.Map;
 
-/**
- * Token do proprio servico de registro (client credentials), usado nas chamadas
- * aos outros microsservicos. Fica em cache e so e renovado perto de expirar.
- * Reaproveita o client register-service (keycloak.admin.*), que no realm tem a role SERVICE.
- */
 @Component
 public class ServiceTokenProvider {
 

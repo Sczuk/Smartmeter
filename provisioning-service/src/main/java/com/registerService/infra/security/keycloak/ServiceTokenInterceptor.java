@@ -8,10 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-/**
- * Anexa o token de servico em cada chamada. Use somente no RestClient cujo baseUrl
- * e o energy-iot-service, para o token nunca ser enviado a outro destino.
- */
+
 @Component
 public class ServiceTokenInterceptor implements ClientHttpRequestInterceptor {
 
