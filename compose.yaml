@@ -1,0 +1,63 @@
+services:
+
+    postgresdb:
+      container_name: smartmeter_postegres
+      image: postgres:latest
+      environment:
+        POSTGRES_USER: ${POSTGRES_USERNAME}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+        POSTGRES_DB: ${POSTGRES_DATABASE}
+      ports:
+        - ${POSTGRES_PORT}
+      restart: always
+
+    mongodb:
+      image: mongo:7.0
+      container_name: smartmeter_mongodb
+      restart: unless-stopped
+      ports:
+        - ${MONGODB_PORT}
+      environment:
+        MONGO_INITDB_ROOT_USERNAME: ${MONGODB_ROOT_USERNAME}
+        MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ROOT_PASSWORD}
+        MONGODB_DATABASE: ${MONGODB_DATABASE}
+        MONGODB_APP_USER: ${MONGODB_APP_USER}
+        MONGODB_APP_PASSWORD: ${MONGODB_APP_PASSWORD}
+      volumes:
+        - ./energy-iot-service/mongo-init/init.js:/docker-entrypoint-initdb.d/init.js:ro
+
+    mosquitto:
+      image: eclipse-mosquitto:latest
+      container_name: smartmeter_mosquitto
+      environment:
+        MQTT_USER: ${BROKER_USER}
+        MQTT_PASSWORD: ${BROKER_PASSWORD}
+      ports:
+        - ${MOSQUITTO_PORT}
+      volumes:
+        - ./energy-iot-service/mosquitto/config:/mosquitto/config:ro
+        - ./energy-iot-service/mosquitto/data:/mosquitto/data
+        - ./energy-iot-service/mosquitto/log:/mosquitto/log
+      entrypoint: [ "/bin/sh", "-c" ]
+      command:
+        - |
+          mosquitto_passwd -b -c /mosquitto/passwd "$$MQTT_USER" "$$MQTT_PASSWORD"
+          chown mosquitto:mosquitto /mosquitto/passwd
+          chmod 0700 /mosquitto/passwd
+          chown -R mosquitto:mosquitto /mosquitto/data /mosquitto/log
+          exec mosquitto -c /mosquitto/config/mosquitto.conf
+      restart: always
+      security_opt:
+        - no-new-privileges:true
+
+    keycloak:
+      container_name: smartmeter_keycloak
+      image: quay.io/keycloak/keycloak:24.0.1
+      volumes:
+        - ./smartmeter-realm.json:/opt/keycloak/data/import/smartmeter-realm.json:ro
+      command: start-dev --import-realm
+      environment:
+        KEYCLOAK_ADMIN: ${KEYCLOAK_USER}
+        KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_PASSWORD}
+      ports:
+          - "${KEYCLOAK_PORT}:8080"
