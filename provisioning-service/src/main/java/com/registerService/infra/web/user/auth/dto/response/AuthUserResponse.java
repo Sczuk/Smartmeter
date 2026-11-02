@@ -21,10 +21,10 @@ public class AuthUserResponse {
     public static AuthUserResponse from(AuthTokens tokens) {
         AuthUserResponse response = new AuthUserResponse();
         response.setAccess_token(tokens.access_token());
-        response.setRefresh_token(tokens.refreshToken());
-        response.setExpires_in(tokens.expiresIn());
-        response.setRefresh_expires_in(tokens.refreshExpiresIn());
-        response.setToken_type(tokens.tokenType());
+        response.setRefresh_token(tokens.refresh_token());
+        response.setExpires_in(tokens.expires_in());
+        response.setRefresh_expires_in(tokens.refresh_expires_in());
+        response.setToken_type(tokens.token_type());
         return response;
     }
 }
