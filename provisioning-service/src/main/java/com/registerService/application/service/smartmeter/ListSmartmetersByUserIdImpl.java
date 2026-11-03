@@ -22,13 +22,13 @@ public class ListSmartmetersByUserIdImpl implements ListSmartmetersByUserId {
     public List<Smartmeter> execute(String userId) {
         User user = userRepository.findById(UUID.fromString(userId)).orElseThrow(
                 ()-> new UserNotFoundException("id "+userId+" not found"));
+        List<Smartmeter> smartmeters = new ArrayList<>();
 
         if(user.getSmartmeters().isEmpty()){
             Smartmeter smartmeter = new Smartmeter();
             smartmeter.setUser(user);
-            List<Smartmeter> listSmartmeter = new ArrayList<>();
-            listSmartmeter.add(smartmeter);
-            return listSmartmeter;
+            smartmeters.add(smartmeter);
+            return smartmeters;
         }
 
         return user.getSmartmeters();

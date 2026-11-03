@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -66,13 +67,21 @@ public class SmartmeterController {
     @GetMapping("/smartmeters")
     @Operation(summary = "Get all smartmeters", description = "With this method, you will find all the Smartmeters registered to your Id.")
     public ResponseEntity<ListSmartmeterWithUserNameResponse> listSmartmeter(Authentication auth){
+        List<ListSmartmetersResponse> smartmeterResponse = new ArrayList<>();
         ListSmartmeterWithUserNameResponse response = new ListSmartmeterWithUserNameResponse();
-        List<ListSmartmetersResponse> smartmeterResponse = listSmartmetersByUserId.execute(auth.getName())
-                .stream()
-                .map(smartmeter -> {
-                    response.setName(smartmeter.getUser().getName());
-                    return smartmeterMapper.toListSmartmeterResponse(smartmeter);})
-                .toList();
+        List<Smartmeter> smartmeters = listSmartmetersByUserId.execute(auth.getName());
+
+        if(smartmeters.getFirst().getId() != null) {
+            smartmeterResponse = smartmeters
+                    .stream()
+                    .map(smartmeter -> {
+                        response.setName(smartmeter.getUser().getName());
+                        return smartmeterMapper.toListSmartmeterResponse(smartmeter);
+                    })
+                    .toList();
+        }
+
+        response.setName(smartmeters.getFirst().getUser().getName());
         response.setSmartmeters(smartmeterResponse);
         return ResponseEntity.ok(response);
     }
