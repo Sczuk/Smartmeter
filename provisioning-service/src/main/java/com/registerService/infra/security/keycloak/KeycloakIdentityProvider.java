@@ -213,7 +213,6 @@ public class KeycloakIdentityProvider implements IdentityProvider {
         return baseUrl + "/admin/realms/" + realm;
     }
 
-    // O Keycloak 24 exige nome e sobrenome; com uma palavra so, o nome se repete nos dois campos.
     private static String[] splitName(String fullName) {
         String trimmed = fullName.trim();
         int space = trimmed.indexOf(' ');
