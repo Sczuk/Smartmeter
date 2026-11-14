@@ -151,12 +151,14 @@ public class KeycloakIdentityProvider implements IdentityProvider {
         form.add("refresh_token", refreshToken);
 
         return http.post()
-                .uri("/realms/smartmeter/protocol/openid-connect/token")
+                .uri(tokenUrl())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .body(form)
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError,
-                        (req, res) -> { throw new InvalidRefreshTokenException("invalid refresh token"); })
+                        (req, res) -> {
+                            throw new InvalidRefreshTokenException("invalid refresh token");
+                        })
                 .body(AuthTokens.class);
     }
 
@@ -168,7 +170,7 @@ public class KeycloakIdentityProvider implements IdentityProvider {
         form.add("refresh_token", refreshToken);
 
         http.post()
-                .uri("/protocol/openid-connect/logout")
+                .uri(logoutUrl())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .body(form)
                 .retrieve()
@@ -220,6 +222,16 @@ public class KeycloakIdentityProvider implements IdentityProvider {
             return new String[]{trimmed, trimmed};
         }
         return new String[]{trimmed.substring(0, space), trimmed.substring(space + 1).trim()};
+    }
+
+    private String tokenUrl() {
+        return baseUrl + "/realms/" + realm
+                + "/protocol/openid-connect/token";
+    }
+
+    private String logoutUrl() {
+        return baseUrl + "/realms/" + realm
+                + "/protocol/openid-connect/logout";
     }
 
     private static long asLong(Object value) {
