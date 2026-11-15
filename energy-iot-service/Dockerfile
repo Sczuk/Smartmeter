@@ -7,4 +7,4 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-CMD ["java", "-jar", "app.jar"]
+CMD ["sh", "-c", "mkdir -p /app/certs && printf '%s\\n' \"$MQTT_CA_CERT\" > /app/certs/ca.crt && exec java -jar app.jar"]
