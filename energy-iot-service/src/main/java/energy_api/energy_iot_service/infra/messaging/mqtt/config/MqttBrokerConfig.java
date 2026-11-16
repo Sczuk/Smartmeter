@@ -15,6 +15,16 @@ import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.security.SecureRandom;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+
 @EnableIntegration
 @RequiredArgsConstructor
 @Configuration
@@ -28,6 +38,8 @@ public class MqttBrokerConfig {
     @Value("${mqtt.broker.password}")
     private String passwordMqtt;
 
+    @Value("${mqtt.broker.ca-path}")
+    private String caPath;
 
     @Bean
     public MqttPahoClientFactory mqttClientFactory(){
@@ -44,9 +56,42 @@ public class MqttBrokerConfig {
         options.setUserName(userMqtt);
         options.setPassword(passwordMqtt.toCharArray());
 
+        options.setSocketFactory(createSslSocketFactory());
+
         factory.setConnectionOptions(options);
         return factory;
 
+    }
+
+    private SSLSocketFactory createSslSocketFactory() {
+        try {
+            CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+            Certificate caCertificate;
+
+            try (InputStream inputStream = new FileInputStream(caPath)) {
+                caCertificate = certificateFactory.generateCertificate(inputStream);
+            }
+
+            KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            keyStore.load(null, null);
+            keyStore.setCertificateEntry("mqtt-ca", caCertificate);
+
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(
+                            TrustManagerFactory.getDefaultAlgorithm());
+
+            trustManagerFactory.init(keyStore);
+
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+
+            sslContext.init(null, trustManagerFactory.getTrustManagers(), new SecureRandom());
+
+            return sslContext.getSocketFactory();
+
+        } catch (Exception e) {
+            throw new IllegalStateException(
+                    "Error in config the certificate of TLS", e
+            );
+        }
     }
 
 //--------subscriber---------
